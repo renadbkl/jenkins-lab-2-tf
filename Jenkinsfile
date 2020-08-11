@@ -12,7 +12,7 @@ pipeline {
     OWNER = "bryan"
     PROJECT_NAME = 'web-server'
     AWS_PROFILE="kh-labs"
-    TF_NAMESPACE="bryan"
+    TF_NAMESPACE="renad"
   }
   stages {
       stage("init") {
