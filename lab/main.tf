@@ -25,6 +25,19 @@ module "tags_bastion" {
     type  = "bastion"
   }
 }
+  module "tags_api" {
+  source      = "git::https://github.com/cloudposse/terraform-null-label.git"
+  namespace   = var.name
+  environment = "dev"
+  name        = "api-devops-bootcamp"
+  delimiter   = "_"
+ 
+  tags = {
+    owner = var.name
+    type  = "api"
+  }
+}
+
 
 module "tags_webserver" {
   source      = "git::https://github.com/cloudposse/terraform-null-label.git"
@@ -180,4 +193,22 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids = [aws_security_group.bastion.id]
   key_name               = aws_key_pair.lab_keypair.id
   tags                   = module.tags_bastion.tags
+}
+resource "aws_instance" "api" {
+  count                       = 1
+  ami                         = data.aws_ami.latest_webserver.id
+  instance_type               = var.instance_type
+  subnet_id                   = aws_subnet.webserver[count.index].id
+  vpc_security_group_ids      = [aws_security_group.webserver.id]
+  key_name                    = aws_key_pair.lab_keypair.id
+  associate_public_ip_address = true
+  tags                        = module.tags_api.tags
+  depends_on                  = [aws_instance.api]
+  user_data = <<-EOF
+          #!/bin/bash
+          echo " ${aws_instance.api.0.public_ip}" > /home/ubuntu/public-ip.txt
+          cat /home/ubuntu/public-ip.txt
+          EOF
+}
+
 }
